@@ -113,36 +113,39 @@ module breakout(
         .vpos(vga_vpos)
     );
     
-    // Blocks drawer
-    wire [207:0] block_state = {
-        13'b1010101010101,
-        13'b0101010101010,
-        13'b1010101010101,
-        13'b0101010101010,
-        13'b1010101010101,
-        13'b0101010101010,
-        13'b1010101010101,
-        13'b0101010101010,
-        13'b1010101010101,
-        13'b0101010101010,
-        13'b1010101010101,
-        13'b0101010101010,
-        13'b1010101010101,
-        13'b0101010101010,
-        13'b1010101010101,
-        13'b0101010101010
-    };
-    blocks_drawer blocks_drawer(
-        .clk(clk),
-        .nRst(nRst),
-        .block_en(draw_blocks),
-        .color(blocks_color),
-        .hpos(vga_hpos),
-        .vpos(vga_vpos),
-        .new_frame(vga_frame_pulse),
-        .new_line(vga_line_pulse),
-        .block_state(block_state)
-    );
+    // // Blocks drawer
+    // wire [207:0] block_state = {
+    //     13'b1010101010101,
+    //     13'b0101010101010,
+    //     13'b1010101010101,
+    //     13'b0101010101010,
+    //     13'b1010101010101,
+    //     13'b0101010101010,
+    //     13'b1010101010101,
+    //     13'b0101010101010,
+    //     13'b1010101010101,
+    //     13'b0101010101010,
+    //     13'b1010101010101,
+    //     13'b0101010101010,
+    //     13'b1010101010101,
+    //     13'b0101010101010,
+    //     13'b1010101010101,
+    //     13'b0101010101010
+    // };
+    // blocks_drawer blocks_drawer(
+    //     .clk(clk),
+    //     .nRst(nRst),
+    //     .block_en(draw_blocks),
+    //     .color(blocks_color),
+    //     .hpos(vga_hpos),
+    //     .vpos(vga_vpos),
+    //     .new_frame(vga_frame_pulse),
+    //     .new_line(vga_line_pulse),
+    //     .block_state(block_state)
+    // );
+
+    assign draw_blocks = 1'b0;
+    assign blocks_color = 6'b000000;
     
     
     assign dbg[0] = vga_hactive;
