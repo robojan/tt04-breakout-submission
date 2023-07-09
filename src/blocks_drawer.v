@@ -29,14 +29,14 @@ module blocks_drawer(
     input [8:0] vpos,
     input new_frame,
     input new_line,
-    input [207:0] block_state
+    input [12:0] block_state
     );
     
     parameter BORDER_WIDTH = 8;
     parameter BLOCK_WIDTH = 48;
     parameter BLOCK_HEIGHT = 16;
     parameter BLOCKS_PER_ROW = 13;
-    parameter NUM_ROWS = 16;
+    parameter NUM_ROWS = 1;
     
     wire [7:0] block_idx;
     
