@@ -92,7 +92,8 @@ module blocks_drawer(
         end
     end
     
-    wire in_block = block_state[block_idx];
+//    wire in_block = block_state[block_idx];
+    wire in_block = block_idx[0];
     
     assign block_en = in_block && in_block_region;
     assign color = 6'b110000;
