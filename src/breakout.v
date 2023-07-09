@@ -93,10 +93,18 @@ module breakout(
     );
     
     // Ball painter
-    wire [9:0]ball_x = 10'd320;
-    wire [8:0]ball_y = 9'd240;
+    wire [9:0]ball_x;
+    wire [8:0]ball_y;
+    wire ball_top_en;
+    wire ball_left_en;
+    wire ball_bottom_en;
+    wire ball_right_en;
     ball_painter ball_painter(
         .in_ball(draw_ball),
+        .in_ball_top(ball_top_en),
+        .in_ball_left(ball_left_en),
+        .in_ball_bottom(ball_bottom_en),
+        .in_ball_right(ball_right_en),
         .color(ball_color),
         .x(ball_x),
         .y(ball_y),
@@ -143,6 +151,27 @@ module breakout(
         .new_frame(vga_frame_pulse),
         .new_line(vga_line_pulse),
         .block_state(block_state)
+    );
+    
+    // Collisions
+    wire wall_collision = draw_border && draw_ball;
+    wire paddle_collision = draw_paddle && draw_ball;
+    wire block_collision = draw_blocks && draw_ball;
+    wire collision = wall_collision || paddle_collision || block_collision;
+    
+    // Game logic
+    ball_logic ball_logic(
+        .clk(clk),
+        .nRst(nRst),
+        .x(ball_x),
+        .y(ball_y),
+        .frame_pulse(vga_frame_pulse),
+        .do_move(1'b1),
+        .collision(collision),
+        .ball_top_col(ball_top_en),
+        .ball_left_col(ball_left_en),
+        .ball_bottom_col(ball_bottom_en),
+        .ball_right_col(ball_right_en)
     );
     
     

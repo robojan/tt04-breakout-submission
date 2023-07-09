@@ -68,7 +68,7 @@ module vga_timing(
     end
     
     assign line_pulse = hor_at_end;
-    assign frame_pulse = vert_at_end;
+    assign frame_pulse = vert_at_end && line_pulse; // Make sure that the pulse is only one clock cycle wide
     assign hsync = !(hor_counter >= 10'd656 && hor_counter < 10'd752);
     assign hactive = hor_counter < 10'd640;
     assign hpos = hor_counter;
