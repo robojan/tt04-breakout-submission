@@ -5,7 +5,7 @@
 // 
 // Create Date: 07/09/2023 11:43:48 AM
 // Design Name: 
-// Module Name: paddle_drawer
+// Module Name: ball_drawer
 // Project Name: 
 // Target Devices: 
 // Tool Versions: 
@@ -20,22 +20,20 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
-module paddle_drawer(
-    output in_paddle,
+module ball_painter(
+    output in_ball,
     output [5:0] color,
+    input [9:0] x,
+    input [8:0] y,
     input [9:0] hpos,
-    input [8:0] vpos,
-    input [9:0] x
+    input [8:0] vpos
     );
     
-    
     //                          BBGGRR
-    parameter PADDLE_COLOR = 6'b111111;
-    parameter PADDLE_WIDTH = 10'd99; // Should be odd
-    parameter PADDLE_HEIGHT = 9'd8;
-    parameter PADDLE_Y =  9'd456;
+    parameter BALL_COLOR = 6'b001100;
+    parameter BALL_WIDTH = 5; // Should be odd 
     
-    assign color = PADDLE_COLOR;
-    assign in_paddle = (hpos >= x - (PADDLE_WIDTH / 2) && hpos < x + (PADDLE_WIDTH + 1) / 2) &&
-        (vpos >= PADDLE_Y  && vpos < PADDLE_Y + PADDLE_HEIGHT);
+    assign color = BALL_COLOR;
+    assign in_ball = (hpos >= x - (BALL_WIDTH / 2) && hpos < x + (BALL_WIDTH + 1) / 2) &&
+        (vpos >= y - (BALL_WIDTH / 2) && vpos < y + (BALL_WIDTH + 1) / 2);
 endmodule

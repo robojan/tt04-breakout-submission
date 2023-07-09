@@ -23,6 +23,7 @@
 module breakout(
     input clk,
     input nRst,
+    input en,
     input btn_left,
     input btn_right,
     input btn_select,
@@ -84,17 +85,17 @@ module breakout(
     assign vga_b = video_out[5:4];
     
     // Border generator
-    border_generator border(
+    border_painter border(
         .in_border(draw_border),
         .color(border_color),
         .hpos(vga_hpos),
         .vpos(vga_vpos)
     );
     
-    // Ball drawer
+    // Ball painter
     wire [9:0]ball_x = 10'd320;
     wire [8:0]ball_y = 9'd240;
-    ball_drawer ball_drawer(
+    ball_painter ball_painter(
         .in_ball(draw_ball),
         .color(ball_color),
         .x(ball_x),
@@ -103,9 +104,9 @@ module breakout(
         .vpos(vga_vpos)
     );
     
-    // Paddle drawer
+    // Paddle painter
     wire [9:0]paddle_x = 10'd320;
-    paddle_drawer paddle_drawer(
+    paddle_painter paddle_painter(
         .in_paddle(draw_paddle),
         .color(paddle_color),
         .x(paddle_x),
@@ -132,7 +133,7 @@ module breakout(
         13'b1010101010101,
         13'b0101010101010
     };
-    blocks_drawer blocks_drawer(
+    blocks_painter blocks_painter(
         .clk(clk),
         .nRst(nRst),
         .block_en(draw_blocks),

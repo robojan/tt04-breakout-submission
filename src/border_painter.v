@@ -3,9 +3,9 @@
 // Company: 
 // Engineer: 
 // 
-// Create Date: 07/09/2023 11:43:48 AM
+// Create Date: 07/09/2023 11:04:48 AM
 // Design Name: 
-// Module Name: ball_drawer
+// Module Name: border_generator
 // Project Name: 
 // Target Devices: 
 // Tool Versions: 
@@ -20,20 +20,22 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
-module ball_drawer(
-    output in_ball,
+module border_painter(
+    output in_border,
     output [5:0] color,
-    input [9:0] x,
-    input [8:0] y,
     input [9:0] hpos,
     input [8:0] vpos
     );
     
     //                          BBGGRR
-    parameter BALL_COLOR = 6'b001100;
-    parameter BALL_WIDTH = 5; // Should be odd 
+    parameter BORDER_COLOR = 6'b111111;
+    parameter BORDER_LEFT = 10'd0;
+    parameter BORDER_RIGHT = 10'd632;
+    parameter BORDER_TOP = 9'd0;
+    parameter BORDER_WIDTH = 3; // 2 ^ x 
     
-    assign color = BALL_COLOR;
-    assign in_ball = (hpos >= x - (BALL_WIDTH / 2) && hpos < x + (BALL_WIDTH + 1) / 2) &&
-        (vpos >= y - (BALL_WIDTH / 2) && vpos < y + (BALL_WIDTH + 1) / 2);
+    assign color = BORDER_COLOR;
+    assign in_border = hpos[9:BORDER_WIDTH] == BORDER_LEFT[9:BORDER_WIDTH] || 
+        hpos[9:BORDER_WIDTH] == BORDER_RIGHT[9:BORDER_WIDTH] || 
+        vpos[8:BORDER_WIDTH] == BORDER_TOP[8:BORDER_WIDTH];
 endmodule

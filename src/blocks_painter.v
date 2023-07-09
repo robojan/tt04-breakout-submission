@@ -20,7 +20,7 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
-module blocks_drawer(
+module blocks_painter (
     input clk,
     input nRst,
     output block_en,
@@ -66,7 +66,7 @@ module blocks_drawer(
         if(!nRst) begin
             block_y_cnt <= 0;
         end else begin
-            if(is_last_block_y || new_frame) begin
+            if((new_line && is_last_block_y) || new_frame) begin
                 block_y_cnt <= 0;                
             end else if(new_line && in_vertical_block_region) begin
                 block_y_cnt <= block_y_cnt + 1'b1;
@@ -83,7 +83,7 @@ module blocks_drawer(
             if(new_frame) begin
                 base_block_idx <= 8'd0;
             end else if(new_line && in_vertical_block_region && is_last_block_y) begin
-                base_block_idx <= base_block_idx + BLOCKS_PER_ROW;
+                base_block_idx <= block_idx;
             end
         end
     end
@@ -105,9 +105,11 @@ module blocks_drawer(
     
     assign block_idx = base_block_idx + block_offset_idx;
     
-    wire in_block = block_state[block_idx];
+    wire in_block_border = block_y_cnt == 0 || block_x_cnt == 0 || block_x_cnt == BLOCK_WIDTH - 1 || block_y_cnt == BLOCK_HEIGHT - 1; 
+    wire current_block_present = block_state[block_idx];
+    wire in_block = in_block_region && current_block_present && !in_block_border;
     
-    assign block_en = in_block && in_block_region;
+    assign block_en = in_block;
     assign color = 6'b110000;
     
 endmodule
