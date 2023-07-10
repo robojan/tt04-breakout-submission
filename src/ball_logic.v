@@ -69,8 +69,6 @@ module ball_logic
                 latched_ball_left_collision <= latched_ball_left_collision | ball_left_col;
                 latched_ball_right_collision <= latched_ball_right_collision | ball_right_col;
             end
-            
-            
         end
     end
 

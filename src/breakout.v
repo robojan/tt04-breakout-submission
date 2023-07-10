@@ -113,7 +113,7 @@ module breakout(
     );
     
     // Paddle painter
-    wire [9:0]paddle_x = 10'd320;
+    wire [9:0]paddle_x;
     paddle_painter paddle_painter(
         .in_paddle(draw_paddle),
         .color(paddle_color),
@@ -174,6 +174,15 @@ module breakout(
         .ball_right_col(ball_right_en)
     );
     
+    paddle_logic paddle_logic(
+        .clk(clk),
+        .nRst(nRst),
+        .frame_pulse(vga_frame_pulse),
+        .paddle_x(paddle_x),
+        .button_left(btn_left),
+        .button_right(btn_right)
+    );
+        
     
     assign dbg[0] = vga_hactive;
     assign dbg[1] = vga_vactive;

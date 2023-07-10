@@ -11,6 +11,7 @@ project:
     - blocks_painter.v
     - border_painter.v
     - breakout.v
+    - paddle_logic.v
     - paddle_painter.v
     - tt_um_robojan_top.v
     - vga_timing.v
