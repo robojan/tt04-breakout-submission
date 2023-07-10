@@ -22,8 +22,8 @@
 
 module ball_logic 
 #(
-    parameter INITIAL_X = 10'd320,
-    parameter INITIAL_Y = 9'd452,
+    parameter INITIAL_X = 10'd320 - 3'd2,
+    parameter INITIAL_Y = 9'd452 - 3'd2,
     parameter INITIAL_VEL_X = 4'sd2,
     parameter INITIAL_VEL_Y = -4'sd2
 )(

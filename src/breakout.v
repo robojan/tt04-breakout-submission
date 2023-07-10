@@ -100,6 +100,8 @@ module breakout(
     wire ball_bottom_en;
     wire ball_right_en;
     ball_painter ball_painter(
+        .clk(clk),
+        .nRst(nRst),
         .in_ball(draw_ball),
         .in_ball_top(ball_top_en),
         .in_ball_left(ball_left_en),
@@ -109,7 +111,8 @@ module breakout(
         .x(ball_x),
         .y(ball_y),
         .hpos(vga_hpos),
-        .vpos(vga_vpos)
+        .vpos(vga_vpos),
+        .line_pulse(vga_line_pulse)
     );
     
     // Paddle painter
@@ -123,24 +126,6 @@ module breakout(
     );
     
     // Blocks drawer
-    wire [207:0] block_state = {
-        13'b1010101010101,
-        13'b0101010101010,
-        13'b1010101010101,
-        13'b0101010101010,
-        13'b1010101010101,
-        13'b0101010101010,
-        13'b1010101010101,
-        13'b0101010101010,
-        13'b1010101010101,
-        13'b0101010101010,
-        13'b1010101010101,
-        13'b0101010101010,
-        13'b1010101010101,
-        13'b0101010101010,
-        13'b1010101010101,
-        13'b0101010101010
-    };
     blocks_painter blocks_painter(
         .clk(clk),
         .nRst(nRst),
@@ -150,7 +135,8 @@ module breakout(
         .vpos(vga_vpos),
         .new_frame(vga_frame_pulse),
         .new_line(vga_line_pulse),
-        .block_state(block_state)
+        .block_line_state(block_line_state),
+        .go_next_line(state_go_next_line)
     );
     
     // Collisions
@@ -158,6 +144,16 @@ module breakout(
     wire paddle_collision = draw_paddle && draw_ball;
     wire block_collision = draw_blocks && draw_ball;
     wire collision = wall_collision || paddle_collision || block_collision;
+    
+    // State storage
+    wire [12:0] block_line_state;
+    wire state_go_next_line;
+    block_state block_state(
+        .clk(clk),
+        .nRst(nRst),
+        .line(block_line_state),
+        .next_line(state_go_next_line)
+    );
     
     // Game logic
     ball_logic ball_logic(
@@ -182,10 +178,5 @@ module breakout(
         .button_left(btn_left),
         .button_right(btn_right)
     );
-        
-    
-    assign dbg[0] = vga_hactive;
-    assign dbg[1] = vga_vactive;
-    assign dbg[2] = vga_active;
     
 endmodule

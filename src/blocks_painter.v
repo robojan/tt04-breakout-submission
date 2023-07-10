@@ -29,7 +29,8 @@ module blocks_painter (
     input [8:0] vpos,
     input new_frame,
     input new_line,
-    input [207:0] block_state
+    input [12:0] block_line_state,
+    output go_next_line
     );
     
     parameter BORDER_WIDTH = 8;
@@ -75,6 +76,7 @@ module blocks_painter (
     end
     
     reg [7:0] base_block_idx;
+    assign go_next_line = new_line && in_vertical_block_region && is_last_block_y;
     always @(posedge clk or negedge nRst)
     begin
         if(!nRst) begin
@@ -82,14 +84,13 @@ module blocks_painter (
         end else begin
             if(new_frame) begin
                 base_block_idx <= 8'd0;
-            end else if(new_line && in_vertical_block_region && is_last_block_y) begin
-                base_block_idx <= block_idx;
+            end else if(go_next_line) begin
+                base_block_idx <= base_block_idx + BLOCKS_PER_ROW;
             end
         end
     end
     
     reg [3:0] block_offset_idx;
-    assign block_idx = base_block_idx + block_offset_idx;
     always @(posedge clk or negedge nRst)
     begin
         if(!nRst) begin
@@ -102,11 +103,9 @@ module blocks_painter (
             end
         end
     end
-    
-    assign block_idx = base_block_idx + block_offset_idx;
-    
+        
     wire in_block_border = block_y_cnt == 0 || block_x_cnt == 0 || block_x_cnt == BLOCK_WIDTH - 1 || block_y_cnt == BLOCK_HEIGHT - 1; 
-    wire current_block_present = block_state[block_idx];
+    wire current_block_present = block_line_state[block_offset_idx];
     wire in_block = in_block_region && current_block_present && !in_block_border;
     
     assign block_en = in_block;
