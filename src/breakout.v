@@ -34,6 +34,8 @@ module breakout(
     output vga_vsync,
     output [7:0] dbg
     );
+
+    parameter NUM_ROWS = 8;
     
     // Generate the VGA timing
     wire vga_hactive;
@@ -59,13 +61,13 @@ module breakout(
     
     // Video mux
     wire [5:0] video_out;
-    wire [6:0] border_color;
+    wire [5:0] border_color;
     wire draw_border;
-    wire [6:0] ball_color;
+    wire [5:0] ball_color;
     wire draw_ball;
-    wire [6:0] paddle_color;
+    wire [5:0] paddle_color;
     wire draw_paddle;
-    wire [6:0] blocks_color;
+    wire [5:0] blocks_color;
     wire draw_blocks;
     video_mux video_mux(
         .out(video_out),
@@ -118,6 +120,8 @@ module breakout(
     // Paddle painter
     wire [9:0]paddle_x;
     paddle_painter paddle_painter(
+        .clk(clk),
+        .nRst(nRst),
         .in_paddle(draw_paddle),
         .color(paddle_color),
         .x(paddle_x),
@@ -125,8 +129,10 @@ module breakout(
         .vpos(vga_vpos)
     );
     
-    // Blocks drawer
-    blocks_painter blocks_painter(
+    // Blocks painter
+    blocks_painter #(
+        .NUM_ROWS(NUM_ROWS)
+    ) blocks_painter(
         .clk(clk),
         .nRst(nRst),
         .block_en(draw_blocks),
@@ -135,6 +141,7 @@ module breakout(
         .vpos(vga_vpos),
         .new_frame(vga_frame_pulse),
         .new_line(vga_line_pulse),
+        .display_active(vga_active),
         .block_line_state(block_line_state),
         .go_next_line(state_go_next_line)
     );
@@ -148,7 +155,9 @@ module breakout(
     // State storage
     wire [12:0] block_line_state;
     wire state_go_next_line;
-    block_state block_state(
+    block_state  #(
+        .NUM_ROWS(NUM_ROWS)
+    ) block_state (
         .clk(clk),
         .nRst(nRst),
         .line(block_line_state),

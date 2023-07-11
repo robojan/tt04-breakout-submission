@@ -29,20 +29,49 @@ module blocks_painter (
     input [8:0] vpos,
     input new_frame,
     input new_line,
+    input display_active,
     input [12:0] block_line_state,
     output go_next_line
     );
     
     parameter BORDER_WIDTH = 8;
     parameter BLOCK_WIDTH = 48;
-    parameter BLOCK_HEIGHT = 16;
+    parameter BLOCK_HEIGHT = 24;
     parameter BLOCKS_PER_ROW = 13;
     parameter NUM_ROWS = 16;
     
-    wire [7:0] block_idx;
-    
-    wire in_vertical_block_region = vpos >= BORDER_WIDTH && vpos < (BORDER_WIDTH + NUM_ROWS * BLOCK_HEIGHT);
-    wire in_horizontal_block_region = hpos >= BORDER_WIDTH && hpos < (BORDER_WIDTH + BLOCKS_PER_ROW * BLOCK_WIDTH); 
+    reg in_vertical_block_region;
+    wire vertical_block_region_start = vpos == BORDER_WIDTH && display_active;
+    wire vertical_block_region_end = vpos == BORDER_WIDTH + NUM_ROWS * BLOCK_HEIGHT;
+    always @(posedge clk or negedge nRst)
+    begin
+        if(!nRst) begin
+            in_vertical_block_region <= 1'b0;
+        end else begin
+            if(vertical_block_region_start) begin
+                in_vertical_block_region <= 1'b1;
+            end else if(vertical_block_region_end) begin
+                in_vertical_block_region <= 1'b0;
+            end
+        end
+    end
+
+    reg in_horizontal_block_region;
+    wire horizontal_block_region_start = hpos == BORDER_WIDTH - 1 && display_active;
+    wire horizontal_block_region_end = hpos == (BORDER_WIDTH + BLOCKS_PER_ROW * BLOCK_WIDTH) - 1; 
+    always @(posedge clk or negedge nRst)
+    begin
+        if(!nRst) begin
+            in_horizontal_block_region <= 1'b0;
+        end else begin
+            if(horizontal_block_region_start) begin
+                in_horizontal_block_region <= 1'b1;
+            end else if(horizontal_block_region_end) begin
+                in_horizontal_block_region <= 1'b0;
+            end
+        end
+    end
+
     wire in_block_region = in_horizontal_block_region && in_vertical_block_region; 
     
     reg [5:0] block_x_cnt;
@@ -60,8 +89,8 @@ module blocks_painter (
         end
     end
     
-    reg [3:0] block_y_cnt;
-    wire is_last_block_y = block_y_cnt == NUM_ROWS-1;
+    reg [4:0] block_y_cnt;
+    wire is_last_block_y = block_y_cnt == BLOCK_HEIGHT-1;
     always @(posedge clk or negedge nRst)
     begin
         if(!nRst) begin

@@ -20,12 +20,16 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
-module block_state(
+module block_state #(
+    parameter NUM_ROWS = 16
+)(
     input clk,
     input nRst,
     output [12:0] line,
     input next_line
-    );
+);
+
+    localparam STATE_WIDTH = NUM_ROWS * 13;
 
     parameter INITIAL_STATE = {
         13'b1010101010000,
@@ -46,14 +50,14 @@ module block_state(
         13'b0101010101111
     };
 
-    reg [207:0] state;
+    reg [STATE_WIDTH-1:0] state;
     always @(posedge clk or negedge nRst)
     begin
         if (!nRst) begin
             state <= INITIAL_STATE;
         end else begin
             if (next_line) begin
-                state <= {state[12:0], state[207:13]};
+                state <= {state[12:0], state[STATE_WIDTH - 1:13]};
             end
         end
     end

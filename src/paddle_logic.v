@@ -22,8 +22,8 @@
 
 module paddle_logic
 #(
-    parameter INITIAL_X = 10'd320,
     parameter PADDLE_WIDTH = 99,
+    parameter INITIAL_X = 10'd320 - PADDLE_WIDTH / 2 - 1,
     parameter BORDER_WIDTH = 8
 )(
     input clk,
@@ -36,8 +36,8 @@ module paddle_logic
     
     reg [9:0] state_x;
     // Ignore the bottom bit to account for the velocity of the paddle
-    wire is_at_left_limit = state_x[9:1] == (BORDER_WIDTH + PADDLE_WIDTH / 2) >> 1;
-    wire is_at_right_limit = state_x[9:1] == (640 - BORDER_WIDTH - PADDLE_WIDTH / 2) >> 1;
+    wire is_at_left_limit = state_x[9:1] == BORDER_WIDTH >> 1;
+    wire is_at_right_limit = state_x[9:1] == (640 - BORDER_WIDTH - PADDLE_WIDTH) >> 1;
     always @(posedge clk or negedge nRst)
     begin
         if(!nRst) begin

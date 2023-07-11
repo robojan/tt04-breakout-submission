@@ -66,14 +66,74 @@ module vga_timing(
             end
         end
     end
+
+    wire hsync_start = hor_counter == 10'd656;
+    wire hsync_end = hor_counter == 10'd751;
+    reg hsync;
+    always @(posedge clk or negedge nRst)
+    begin
+        if(!nRst) begin
+            hsync <= 1'b1;
+        end else begin
+            if(hsync_start) begin
+                hsync <= 1'b0;
+            end else if(hsync_end) begin
+                hsync <= 1'b1;
+            end
+        end
+    end
+
+    wire hactive_end = hor_counter == 10'd639;
+    reg hactive;
+    always @(posedge clk or negedge nRst)
+    begin
+        if(!nRst) begin
+            hactive <= 1'b1;
+        end else begin
+            if(hor_at_end) begin
+                hactive <= 1'b1;
+            end else if(hactive_end) begin
+                hactive <= 1'b0;
+            end
+        end
+    end
+
+    wire vsync_start = vert_counter == 10'd490;
+    wire vsync_end = vert_counter == 10'd492;
+    reg vsync;
+    always @(posedge clk or negedge nRst)
+    begin
+        if(!nRst) begin
+            vsync <= 1'b1;
+        end else begin
+            if(vsync_start) begin
+                vsync <= 1'b0;
+            end else if(vsync_end) begin
+                vsync <= 1'b1;
+            end
+        end
+    end
+
+    wire vactive_end = vert_counter == 10'd479;
+    reg vactive;
+    always @(posedge clk or negedge nRst)
+    begin
+        if(!nRst) begin
+            vactive <= 1'b1;
+        end else begin
+            if(vert_at_end) begin
+                vactive <= 1'b1;
+            end else if(vactive_end) begin
+                vactive <= 1'b0;
+            end
+        end
+    end
+
+
     
     assign line_pulse = hor_at_end;
     assign frame_pulse = vert_at_end && line_pulse; // Make sure that the pulse is only one clock cycle wide
-    assign hsync = !(hor_counter >= 10'd656 && hor_counter < 10'd752);
-    assign hactive = hor_counter < 10'd640;
     assign hpos = hor_counter;
-    assign vsync = !(vert_counter >= 10'd490 && vert_counter < 10'd492);
-    assign vactive = vert_counter < 10'd480;
     assign vpos = vert_counter[8:0];
     assign active = hactive && vactive;
     
