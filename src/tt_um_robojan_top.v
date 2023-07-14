@@ -31,6 +31,9 @@ module tt_um_robojan_top (
     input  wire       rst_n     // reset_n - low to reset
 );
     
+    assign uio_oe = 8'b00000000;
+    assign uio_out = 8'b00000000;
+
     breakout breakout(
         .clk(clk),
         .nRst(rst_n),

@@ -129,6 +129,8 @@ module breakout(
     );
     
     // Blocks painter
+    wire [12:0] block_line_state;
+    wire state_go_next_line;
     blocks_painter #(
         .NUM_ROWS(NUM_ROWS)
     ) blocks_painter(
@@ -152,8 +154,6 @@ module breakout(
     wire collision = wall_collision || paddle_collision || block_collision;
     
     // State storage
-    wire [12:0] block_line_state;
-    wire state_go_next_line;
     block_state  #(
         .NUM_ROWS(NUM_ROWS)
     ) block_state (
