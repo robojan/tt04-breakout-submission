@@ -35,7 +35,7 @@ module breakout(
     output [7:0] dbg
     );
 
-    parameter NUM_ROWS = 8;
+    parameter NUM_ROWS = 16;
     
     // Generate the VGA timing
     wire vga_hactive;

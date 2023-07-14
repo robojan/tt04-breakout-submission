@@ -36,7 +36,7 @@ module blocks_painter (
     
     parameter BORDER_WIDTH = 8;
     parameter BLOCK_WIDTH = 48;
-    parameter BLOCK_HEIGHT = 24;
+    parameter BLOCK_HEIGHT = 20;
     parameter BLOCKS_PER_ROW = 13;
     parameter NUM_ROWS = 16;
     
