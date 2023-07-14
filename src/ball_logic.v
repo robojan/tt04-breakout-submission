@@ -74,15 +74,6 @@ module ball_logic
 
     reg signed [3:0] velocity_x;
     reg signed [3:0] velocity_y;
-    always @(posedge clk or negedge nRst)
-    begin
-        if(!nRst) begin
-        end else begin
-            if(collision) begin
-            end        
-        end
-    end
-
     reg signed [11:0] state_x;
     reg signed [10:0] state_y;
     always @(posedge clk or negedge nRst)
