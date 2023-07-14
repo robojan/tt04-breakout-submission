@@ -23,11 +23,11 @@
 module vga_timing(
     input clk,
     input nRst,
-    output hsync,
-    output hactive,
+    output reg hsync,
+    output reg hactive,
     output [9:0] hpos,
-    output vsync,
-    output vactive,
+    output reg vsync,
+    output reg vactive,
     output [8:0] vpos,
     output active,
     output line_pulse,
@@ -69,7 +69,6 @@ module vga_timing(
 
     wire hsync_start = hor_counter == 10'd656;
     wire hsync_end = hor_counter == 10'd751;
-    reg hsync;
     always @(posedge clk or negedge nRst)
     begin
         if(!nRst) begin
@@ -84,7 +83,6 @@ module vga_timing(
     end
 
     wire hactive_end = hor_counter == 10'd639;
-    reg hactive;
     always @(posedge clk or negedge nRst)
     begin
         if(!nRst) begin
@@ -100,7 +98,6 @@ module vga_timing(
 
     wire vsync_start = vert_counter == 10'd490;
     wire vsync_end = vert_counter == 10'd492;
-    reg vsync;
     always @(posedge clk or negedge nRst)
     begin
         if(!nRst) begin
@@ -115,7 +112,6 @@ module vga_timing(
     end
 
     wire vactive_end = vert_counter == 10'd479;
-    reg vactive;
     always @(posedge clk or negedge nRst)
     begin
         if(!nRst) begin

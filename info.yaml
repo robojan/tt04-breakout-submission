@@ -5,14 +5,13 @@ project:
 
   # If using an HDL, set wokwi_id as 0 and uncomment and list your source files here. 
   # Source files must be in ./src and you must list each source file separately
-  source_files:
-    - ball_logic.v     
+  source_files:  
     - ball_painter.v
     - block_state.v
     - blocks_painter.v
     - border_painter.v
     - breakout.v
-    - paddle_logic.v
+    - game_logic.v
     - paddle_painter.v
     - tt_um_robojan_top.v
     - vga_timing.v

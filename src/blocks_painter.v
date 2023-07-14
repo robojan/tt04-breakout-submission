@@ -103,22 +103,7 @@ module blocks_painter (
             end
         end
     end
-    
-    reg [7:0] base_block_idx;
-    assign go_next_line = new_line && in_vertical_block_region && is_last_block_y;
-    always @(posedge clk or negedge nRst)
-    begin
-        if(!nRst) begin
-            base_block_idx <= 8'd0;
-        end else begin
-            if(new_frame) begin
-                base_block_idx <= 8'd0;
-            end else if(go_next_line) begin
-                base_block_idx <= base_block_idx + BLOCKS_PER_ROW;
-            end
-        end
-    end
-    
+        
     reg [3:0] block_offset_idx;
     always @(posedge clk or negedge nRst)
     begin

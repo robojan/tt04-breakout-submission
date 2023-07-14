@@ -31,7 +31,7 @@ module block_state #(
 
     localparam STATE_WIDTH = NUM_ROWS * 13;
 
-    parameter INITIAL_STATE = {
+    localparam INITIAL_STATE = {
         13'b1010101010000,
         13'b0101010100001,
         13'b1010101010010,

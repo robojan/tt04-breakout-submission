@@ -41,8 +41,7 @@ module tt_um_robojan_top (
         .vga_g(uo_out[3:2]),
         .vga_b(uo_out[5:4]),
         .vga_hsync(uo_out[6]),
-        .vga_vsync(uo_out[7]),
-        .dbg()
+        .vga_vsync(uo_out[7])
     );
     
 endmodule

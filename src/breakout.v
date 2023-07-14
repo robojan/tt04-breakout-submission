@@ -31,8 +31,7 @@ module breakout(
     output [1:0] vga_g,
     output [1:0] vga_b,
     output vga_hsync,
-    output vga_vsync,
-    output [7:0] dbg
+    output vga_vsync
     );
 
     parameter NUM_ROWS = 16;
@@ -165,27 +164,21 @@ module breakout(
     );
     
     // Game logic
-    ball_logic ball_logic(
+    game_logic game_logic(
         .clk(clk),
         .nRst(nRst),
-        .x(ball_x),
-        .y(ball_y),
+        .ball_x(ball_x),
+        .ball_y(ball_y),
+        .paddle_x(paddle_x),
         .frame_pulse(vga_frame_pulse),
-        .do_move(1'b1),
+        .btn_action(btn_select),
+        .btn_left(btn_left),
+        .btn_right(btn_right),
         .collision(collision),
         .ball_top_col(ball_top_en),
         .ball_left_col(ball_left_en),
         .ball_bottom_col(ball_bottom_en),
         .ball_right_col(ball_right_en)
-    );
-    
-    paddle_logic paddle_logic(
-        .clk(clk),
-        .nRst(nRst),
-        .frame_pulse(vga_frame_pulse),
-        .paddle_x(paddle_x),
-        .button_left(btn_left),
-        .button_right(btn_right)
     );
     
 endmodule
