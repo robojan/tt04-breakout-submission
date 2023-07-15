@@ -33,18 +33,63 @@ module ball_painter(
     input [8:0] y,
     input [9:0] hpos,
     input [8:0] vpos,
-    input line_pulse
+    input line_pulse,
+    input display_active
     );
+        
+    // Pixel ball positions:
+    //      0 1   2 3
+    //    T T T T T T R
+    // 0  L   X X X   R
+    // 1  L X X X X X R
+    //    L X X X X X R 
+    // 2  L X X X X X R
+    // 3  L   X X X   R
+    //    L B B B B B B
     
+    // Pixel ball positions:
+    //   0 1   2 3
+    // 0   X X X  
+    // 1 X X X X X
+    //   X X X X X
+    // 2 X X X X X
+    // 3   X X X
+    
+    // Pixel ball colision regions:
+    //   0 1   2 3
+    // 0 T T T T R  
+    // 1 L       R
+    //   L       R
+    // 2 L       R
+    // 3 L B B B B
+
     //                        BBGGRR
     parameter BALL_COLOR = 6'b001100;
     
     wire is_ball_line_start = x == hpos;
-    wire is_ball_start = is_ball_line_start && y == vpos;
+    wire is_ball_start = display_active && is_ball_line_start && y == vpos;
 
-    reg is_in_ball_line;
     reg [2:0] ball_x;
-    wire is_ball_line_end = ball_x == 4;
+    reg [2:0] ball_y;
+    reg is_in_ball_line;
+    reg is_in_ball_rows;
+    
+    wire x0 = ball_x == 0 && is_in_ball_line;
+    wire x3 = ball_x == 4 && is_in_ball_line;
+    wire y0 = ball_y == 0 && is_in_ball_rows;
+    wire y3 = ball_y == 4 && is_in_ball_rows;
+
+    wire gt_x0 = is_in_ball_line;
+    wire gt_x1 = is_in_ball_line && !x0;
+    wire lt_x2 = is_in_ball_line && !x3;
+    wire lt_x3 = is_in_ball_line;
+    wire gt_y0 = is_in_ball_rows;
+    wire gt_y1 = is_in_ball_rows && !y0;
+    wire lt_y2 = is_in_ball_rows && !y3;
+    wire lt_y3 = is_in_ball_rows;
+
+    wire is_ball_line_end = x3;
+    wire is_ball_rows_end = y3;
 
     // Latch that enables the ball x counter
     always @(posedge clk or negedge nRst)
@@ -74,10 +119,6 @@ module ball_painter(
         end
     end
 
-    reg is_in_ball_rows;
-    reg[2:0] ball_y;
-    wire is_ball_rows_end = ball_y == 4;
-
     // Latch that enables the ball y counter
     always @(posedge clk or negedge nRst)
     begin
@@ -106,40 +147,20 @@ module ball_painter(
                 end
             end
         end
-    end
+    end 
     
-    // Pixel ball positions:
-    //   0 1   2 3
-    // 0   X X X  
-    // 1 X X X X X
-    //   X X X X X
-    // 2 X X X X X
-    // 3   X X X
-    
-    
-    wire gt_x0 = is_in_ball_line;
-    wire gt_x1 = is_in_ball_line && ball_x != 0;
-    wire lt_x2 = is_in_ball_line && ball_x != 4;
-    wire lt_x3 = is_in_ball_line;
-    wire gt_y0 = is_in_ball_rows;
-    wire gt_y1 = is_in_ball_rows && ball_y != 0;
-    wire lt_y2 = is_in_ball_rows && ball_y != 4;
-    wire lt_y3 = is_in_ball_rows;
-    
+    // Ball area
     wire left_lobe = gt_x0 && lt_x2 && gt_y1 && lt_y2;
     wire right_lobe = gt_x1 && lt_x3 && gt_y1 && lt_y2;
     wire top_lobe = gt_x1 && lt_x2 && gt_y0 && lt_y2;
     wire bottom_lobe = gt_x1 && lt_x2 && gt_y1 && lt_y3;
-    wire left_mask = gt_x1 && lt_x3 && gt_y0 && lt_y3;
-    wire right_mask = gt_x0 && lt_x2 && gt_y0 && lt_y3;
-    wire top_mask = gt_x0 && lt_x3 && gt_y1 && lt_y3;
-    wire bottom_mask = gt_x0 && lt_x3 && gt_y0 && lt_y2;
-    
     assign in_ball = left_lobe || right_lobe || top_lobe || bottom_lobe;
-    assign in_ball_top = top_lobe && !top_mask;
-    assign in_ball_left = left_lobe && !left_mask;
-    assign in_ball_bottom = bottom_lobe && !bottom_mask;
-    assign in_ball_right = right_lobe && !right_mask;
+
+    // Ball collision regions
+    assign in_ball_top = y0 && !x3;
+    assign in_ball_left = x0 && !y0;
+    assign in_ball_bottom = y3 && !x0;
+    assign in_ball_right = x3 && !y3;
     
     assign color = BALL_COLOR;
 endmodule

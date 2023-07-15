@@ -113,7 +113,8 @@ module breakout(
         .y(ball_y),
         .hpos(vga_hpos),
         .vpos(vga_vpos),
-        .line_pulse(vga_line_pulse)
+        .line_pulse(vga_line_pulse),
+        .display_active(vga_active)
     );
     
     // Paddle painter

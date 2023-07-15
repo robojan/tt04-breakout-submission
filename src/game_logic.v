@@ -85,7 +85,6 @@ module game_logic
     /////////////////////////////////////////////
     // Latched collisions
     // Collisions are evaluated at the end of the frame but we keep track of collisions during the drawing.
-    reg latched_collision;
     reg latched_ball_top_collision;
     reg latched_ball_bottom_collision;
     reg latched_ball_left_collision;
@@ -93,20 +92,17 @@ module game_logic
     always @(posedge clk or negedge nRst)
     begin
         if(!nRst) begin
-            latched_collision <= 1'b0;
             latched_ball_top_collision <= 1'b0;
             latched_ball_bottom_collision <= 1'b0;
             latched_ball_left_collision <= 1'b0;
             latched_ball_right_collision <= 1'b0;        
         end else begin
             if (frame_pulse) begin
-                latched_collision <= 1'b0;
                 latched_ball_top_collision <= 1'b0;
                 latched_ball_bottom_collision <= 1'b0;
                 latched_ball_left_collision <= 1'b0;
                 latched_ball_right_collision <= 1'b0;    
             end else if(collision) begin
-                latched_collision <= 1'b1;
                 latched_ball_top_collision <= latched_ball_top_collision | ball_top_col;
                 latched_ball_bottom_collision <= latched_ball_bottom_collision | ball_bottom_col;
                 latched_ball_left_collision <= latched_ball_left_collision | ball_left_col;
@@ -143,18 +139,16 @@ module game_logic
                             velocity_y <= INITIAL_VEL_Y;
                             ball_state_x <= {INITIAL_BALL_X, 1'b0};
                             ball_state_y <= {INITIAL_BALL_Y, 1'b0};
-                        end else if(latched_collision) begin
-                            if (latched_ball_top_collision || latched_ball_bottom_collision) begin
-                                velocity_x <= velocity_x;
-                                velocity_y <= -velocity_y;
-                                ball_state_x <= ball_state_x + velocity_x;
-                                ball_state_y <= ball_state_y - velocity_y;
-                            end else if (latched_ball_left_collision || latched_ball_right_collision) begin
-                                velocity_x <= -velocity_x;
-                                velocity_y <= velocity_y;
-                                ball_state_x <= ball_state_x - velocity_x;
-                                ball_state_y <= ball_state_y + velocity_y;
-                            end
+                        end else if (latched_ball_top_collision || latched_ball_bottom_collision) begin
+                            velocity_x <= velocity_x;
+                            velocity_y <= -velocity_y;
+                            ball_state_x <= ball_state_x + velocity_x;
+                            ball_state_y <= ball_state_y - velocity_y;
+                        end else if (latched_ball_left_collision || latched_ball_right_collision) begin
+                            velocity_x <= -velocity_x;
+                            velocity_y <= velocity_y;
+                            ball_state_x <= ball_state_x - velocity_x;
+                            ball_state_y <= ball_state_y + velocity_y;
                         end else begin
                             ball_state_x <= ball_state_x + velocity_x;
                             ball_state_y <= ball_state_y + velocity_y;

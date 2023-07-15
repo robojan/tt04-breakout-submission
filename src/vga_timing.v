@@ -117,7 +117,7 @@ module vga_timing(
         if(!nRst) begin
             vactive <= 1'b1;
         end else begin
-            if(vert_at_end) begin
+            if(vert_at_end && hor_at_end) begin
                 vactive <= 1'b1;
             end else if(vactive_end) begin
                 vactive <= 1'b0;
