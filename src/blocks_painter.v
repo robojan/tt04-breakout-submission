@@ -31,7 +31,10 @@ module blocks_painter (
     input new_line,
     input display_active,
     input [12:0] block_line_state,
-    output go_next_line
+    output go_next_line,
+    input block_collision,
+    output reg [12:0] new_block_line_state,
+    output write_block_line_state
     );
     
     parameter BORDER_WIDTH = 8;
@@ -103,22 +106,7 @@ module blocks_painter (
             end
         end
     end
-    
-    reg [7:0] base_block_idx;
-    assign go_next_line = new_line && in_vertical_block_region && is_last_block_y;
-    always @(posedge clk or negedge nRst)
-    begin
-        if(!nRst) begin
-            base_block_idx <= 8'd0;
-        end else begin
-            if(new_frame) begin
-                base_block_idx <= 8'd0;
-            end else if(go_next_line) begin
-                base_block_idx <= base_block_idx + BLOCKS_PER_ROW;
-            end
-        end
-    end
-    
+        
     reg [3:0] block_offset_idx;
     always @(posedge clk or negedge nRst)
     begin
@@ -139,5 +127,45 @@ module blocks_painter (
     
     assign block_en = in_block;
     assign color = 6'b110000;
+
+    /////////////////////////////////////////////
+    // Handle block collisions
+    /////////////////////////////////////////////
+    // Do three actions at the end of a line of blocks:
+    // 1. Write the new line state to the current position
+    // 2. Go to the next line
+    // 3. Load the next line state
+    wire at_end_of_line = new_line && in_vertical_block_region && is_last_block_y;
+    wire load_line_state;
+    reg at_end_of_line_d1;
+    reg at_end_of_line_d2;
+    assign write_block_line_state = at_end_of_line;
+    assign go_next_line = at_end_of_line_d1;
+    assign load_line_state = at_end_of_line_d2;
+    always @(posedge clk or negedge nRst)
+    begin
+        if(!nRst) begin
+            at_end_of_line_d1 <= 1'b0;
+            at_end_of_line_d2 <= 1'b0;
+        end else begin
+            at_end_of_line_d1 <= at_end_of_line;
+            at_end_of_line_d2 <= at_end_of_line_d1;
+        end
+    end
+
+    // Remove blocks that have been hit
+    always @(posedge clk or negedge nRst)
+    begin
+        if(!nRst) begin
+            new_block_line_state <= 0;
+        end else begin
+            if(load_line_state) begin
+                new_block_line_state <= block_line_state;
+            end else if(block_collision) begin
+                new_block_line_state <= new_block_line_state & ~(1 << block_offset_idx);
+            end
+        end
+    end
+
     
 endmodule

@@ -26,6 +26,8 @@ module block_state #(
     input clk,
     input nRst,
     output [12:0] line,
+    input [12:0] new_line,
+    input write_line,
     input next_line
 );
 
@@ -56,7 +58,9 @@ module block_state #(
         if (!nRst) begin
             state <= INITIAL_STATE;
         end else begin
-            if (next_line) begin
+            if (write_line) begin
+                state <= {state[STATE_WIDTH - 1:13], new_line};
+            end else if (next_line) begin
                 state <= {state[12:0], state[STATE_WIDTH - 1:13]};
             end
         end

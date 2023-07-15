@@ -37,6 +37,7 @@ module tt_um_robojan_top (
     breakout breakout(
         .clk(clk),
         .nRst(rst_n),
+        .en(ena),
         .btn_left(ui_in[0]),
         .btn_right(ui_in[1]),
         .btn_select(ui_in[2]),

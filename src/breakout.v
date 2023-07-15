@@ -128,9 +128,17 @@ module breakout(
         .vpos(vga_vpos)
     );
     
+    // Collisions
+    wire wall_collision = draw_border && draw_ball;
+    wire paddle_collision = draw_paddle && draw_ball;
+    wire block_collision = draw_blocks && draw_ball;
+    wire collision = wall_collision || paddle_collision || block_collision;
+    
     // Blocks painter
     wire [12:0] block_line_state;
     wire state_go_next_line;
+    wire [12:0] write_block_line;
+    wire write_line;
     blocks_painter #(
         .NUM_ROWS(NUM_ROWS)
     ) blocks_painter(
@@ -144,14 +152,11 @@ module breakout(
         .new_line(vga_line_pulse),
         .display_active(vga_active),
         .block_line_state(block_line_state),
-        .go_next_line(state_go_next_line)
+        .go_next_line(state_go_next_line),
+        .block_collision(block_collision),
+        .new_block_line_state(write_block_line),
+        .write_block_line_state(write_line)
     );
-    
-    // Collisions
-    wire wall_collision = draw_border && draw_ball;
-    wire paddle_collision = draw_paddle && draw_ball;
-    wire block_collision = draw_blocks && draw_ball;
-    wire collision = wall_collision || paddle_collision || block_collision;
     
     // State storage
     block_state  #(
@@ -160,7 +165,9 @@ module breakout(
         .clk(clk),
         .nRst(nRst),
         .line(block_line_state),
-        .next_line(state_go_next_line)
+        .next_line(state_go_next_line),
+        .new_line(write_block_line),
+        .write_line(write_line)
     );
     
     // Game logic
