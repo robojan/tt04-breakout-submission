@@ -27,7 +27,7 @@ module game_logic
     parameter INITIAL_VEL_X = 4'sd2,
     parameter INITIAL_VEL_Y = -4'sd2,
     parameter PADDLE_SPEED = 2,
-    parameter PADDLE_WIDTH = 99,
+    parameter PADDLE_WIDTH = 64,
     parameter INITIAL_PADDLE_X = 10'd320 - PADDLE_WIDTH / 2 - 1,
     parameter BORDER_WIDTH = 8
 )(
@@ -41,6 +41,8 @@ module game_logic
     input btn_left,
     input btn_right,
     input collision,
+    input paddle_collision,
+    input [2:0] paddle_segment,
     input ball_top_col,
     input ball_left_col,
     input ball_bottom_col,
@@ -89,24 +91,34 @@ module game_logic
     reg latched_ball_bottom_collision;
     reg latched_ball_left_collision;
     reg latched_ball_right_collision;
+    reg latched_paddle_collision;
+    reg [2:0] latched_paddle_segment;
     always @(posedge clk or negedge nRst)
     begin
         if(!nRst) begin
             latched_ball_top_collision <= 1'b0;
             latched_ball_bottom_collision <= 1'b0;
             latched_ball_left_collision <= 1'b0;
-            latched_ball_right_collision <= 1'b0;        
+            latched_ball_right_collision <= 1'b0;
+            latched_paddle_collision <= 1'b0;
+            latched_paddle_segment <= 3'b0;
         end else begin
             if (frame_pulse) begin
                 latched_ball_top_collision <= 1'b0;
                 latched_ball_bottom_collision <= 1'b0;
                 latched_ball_left_collision <= 1'b0;
                 latched_ball_right_collision <= 1'b0;    
+                latched_paddle_collision <= 1'b0;
+                latched_paddle_segment <= 3'b0;
             end else if(collision) begin
                 latched_ball_top_collision <= latched_ball_top_collision | ball_top_col;
                 latched_ball_bottom_collision <= latched_ball_bottom_collision | ball_bottom_col;
                 latched_ball_left_collision <= latched_ball_left_collision | ball_left_col;
                 latched_ball_right_collision <= latched_ball_right_collision | ball_right_col;
+                latched_paddle_collision <= latched_paddle_collision | paddle_collision;
+            end
+            if(paddle_collision) begin
+                latched_paddle_segment <= paddle_segment;
             end
         end
     end
@@ -116,6 +128,74 @@ module game_logic
     reg signed [11:0] ball_state_x;
     reg signed [10:0] ball_state_y;
     assign ball_out_of_bounds = ball_state_y[10:2] == 9'd488 >> 1; // Ignore the last bit
+
+    reg signed [3:0] next_velocity_x;
+    reg signed [3:0] next_velocity_y;
+    always @(*)
+    begin
+        case(game_state)
+            STATE_START: begin
+                if (btn_action) begin
+                    next_velocity_x <= INITIAL_VEL_X;
+                    next_velocity_y <= INITIAL_VEL_Y;
+                end else if (btn_left && !paddle_is_at_left_limit) begin
+                    next_velocity_x <= - {PADDLE_SPEED, 1'b0};
+                    next_velocity_y <= 0;
+                end else if (btn_right && !paddle_is_at_right_limit) begin
+                    next_velocity_x <= {PADDLE_SPEED, 1'b0};
+                    next_velocity_y <= 0;
+                end else begin
+                    next_velocity_x <= 0;
+                    next_velocity_y <= 0;
+                end
+            end
+            STATE_PLAYING: begin
+                if(ball_out_of_bounds) begin
+                    next_velocity_x <= INITIAL_VEL_X;
+                    next_velocity_y <= INITIAL_VEL_Y;
+                end else if (latched_paddle_collision && latched_ball_bottom_collision) begin
+                    case(latched_paddle_segment)
+                        3'b000: next_velocity_x <= -3;
+                        3'b001: next_velocity_x <= -2;
+                        3'b010: next_velocity_x <= -1;
+                        3'b011: next_velocity_x <= 1;
+                        3'b100: next_velocity_x <= 2;
+                        3'b101: next_velocity_x <= 3;
+                    endcase
+                    next_velocity_y <= -velocity_y;
+                end else if (
+                    (!latched_ball_left_collision &&  latched_ball_top_collision && !latched_ball_right_collision && !latched_ball_bottom_collision) || // Top collisions
+                    ( latched_ball_left_collision &&  latched_ball_top_collision &&  latched_ball_right_collision && !latched_ball_bottom_collision) ||
+                    ( latched_ball_left_collision &&  latched_ball_top_collision && !latched_ball_right_collision && !latched_ball_bottom_collision) ||
+                    (!latched_ball_left_collision &&  latched_ball_top_collision &&  latched_ball_right_collision && !latched_ball_bottom_collision) ||
+                    (!latched_ball_left_collision && !latched_ball_top_collision && !latched_ball_right_collision &&  latched_ball_bottom_collision) || // Bottom collisions
+                    ( latched_ball_left_collision && !latched_ball_top_collision &&  latched_ball_right_collision &&  latched_ball_bottom_collision) ||
+                    ( latched_ball_left_collision && !latched_ball_top_collision && !latched_ball_right_collision &&  latched_ball_bottom_collision) ||
+                    (!latched_ball_left_collision && !latched_ball_top_collision &&  latched_ball_right_collision &&  latched_ball_bottom_collision)
+                ) begin
+                    next_velocity_x <= velocity_x;
+                    next_velocity_y <= -velocity_y;
+                end else if (
+                    // This contains duplicates from the top and bottom collisions, This is fine and will be optimized away.
+                    (!latched_ball_left_collision && !latched_ball_top_collision &&  latched_ball_right_collision && !latched_ball_bottom_collision) || // Right collisions
+                    (!latched_ball_left_collision &&  latched_ball_top_collision &&  latched_ball_right_collision &&  latched_ball_bottom_collision) ||
+                    (!latched_ball_left_collision && !latched_ball_top_collision &&  latched_ball_right_collision &&  latched_ball_bottom_collision) ||
+                    (!latched_ball_left_collision &&  latched_ball_top_collision &&  latched_ball_right_collision && !latched_ball_bottom_collision) ||
+                    ( latched_ball_left_collision && !latched_ball_top_collision && !latched_ball_right_collision && !latched_ball_bottom_collision) || // Left collisions
+                    ( latched_ball_left_collision &&  latched_ball_top_collision && !latched_ball_right_collision &&  latched_ball_bottom_collision) ||
+                    ( latched_ball_left_collision && !latched_ball_top_collision && !latched_ball_right_collision &&  latched_ball_bottom_collision) ||
+                    ( latched_ball_left_collision &&  latched_ball_top_collision && !latched_ball_right_collision && !latched_ball_bottom_collision)
+                ) begin
+                    next_velocity_x <= -velocity_x;
+                    next_velocity_y <= velocity_y;
+                end else begin
+                    next_velocity_x <= velocity_x;
+                    next_velocity_y <= velocity_y;
+                end
+            end
+        endcase
+    end
+
     always @(posedge clk or negedge nRst)
     begin
         if(!nRst) begin
@@ -125,36 +205,15 @@ module game_logic
             velocity_y <= INITIAL_VEL_Y;
         end else begin
             if(frame_pulse) begin
-                case(game_state)
-                    STATE_START: begin
-                        if (btn_left && !paddle_is_at_left_limit) begin
-                            ball_state_x <= ball_state_x - {PADDLE_SPEED, 1'b0};
-                        end else if (btn_right && !paddle_is_at_right_limit) begin
-                            ball_state_x <= ball_state_x + {PADDLE_SPEED, 1'b0};
-                        end
-                    end
-                    STATE_PLAYING: begin
-                        if(ball_out_of_bounds) begin
-                            velocity_x <= INITIAL_VEL_X;
-                            velocity_y <= INITIAL_VEL_Y;
-                            ball_state_x <= {INITIAL_BALL_X, 1'b0};
-                            ball_state_y <= {INITIAL_BALL_Y, 1'b0};
-                        end else if (latched_ball_top_collision || latched_ball_bottom_collision) begin
-                            velocity_x <= velocity_x;
-                            velocity_y <= -velocity_y;
-                            ball_state_x <= ball_state_x + velocity_x;
-                            ball_state_y <= ball_state_y - velocity_y;
-                        end else if (latched_ball_left_collision || latched_ball_right_collision) begin
-                            velocity_x <= -velocity_x;
-                            velocity_y <= velocity_y;
-                            ball_state_x <= ball_state_x - velocity_x;
-                            ball_state_y <= ball_state_y + velocity_y;
-                        end else begin
-                            ball_state_x <= ball_state_x + velocity_x;
-                            ball_state_y <= ball_state_y + velocity_y;
-                        end
-                    end
-                endcase
+                velocity_x <= next_velocity_x;
+                velocity_y <= next_velocity_y;
+                if(ball_out_of_bounds) begin
+                    ball_state_x <= {INITIAL_BALL_X, 1'b0};
+                    ball_state_y <= {INITIAL_BALL_Y, 1'b0};
+                end else begin
+                    ball_state_x <= ball_state_x + next_velocity_x;
+                    ball_state_y <= ball_state_y + next_velocity_y;
+                end
             end
         end
     end

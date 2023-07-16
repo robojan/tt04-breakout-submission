@@ -20,41 +20,61 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
-module paddle_painter (
+module paddle_painter #(
+    //                          BBGGRR
+    parameter PADDLE_COLOR = 6'b111111,
+    parameter PADDLE_SEGMENT_WIDTH = 8,
+    parameter PADDLE_NUM_SEGMENTS = 6, 
+    parameter PADDLE_HEIGHT = 9'd8,
+    parameter PADDLE_Y =  9'd456
+) (
     input clk,
     input nRst,
     output in_paddle,
     output [5:0] color,
     input [9:0] hpos,
     input [8:0] vpos,
-    input [9:0] x
+    input [9:0] x,
+    output [2:0] paddle_segment
     );
     
-    
-    //                          BBGGRR
-    parameter PADDLE_COLOR = 6'b111111;
-    parameter PADDLE_WIDTH = 10'd99; // Should be odd
-    parameter PADDLE_HEIGHT = 9'd8;
-    parameter PADDLE_Y =  9'd456;
-    
     reg in_paddle_x;
-    reg [6:0] paddle_x;
+    reg [2:0] paddle_segment_x;
+    reg [2:0] paddle_segment_cnt;
     wire paddle_x_start = hpos == x;
-    wire paddle_x_end = paddle_x == PADDLE_WIDTH - 1;
+    wire paddle_segment_end = paddle_segment_x == PADDLE_SEGMENT_WIDTH - 1;
+    wire paddle_x_end = paddle_segment_end && paddle_segment_cnt == PADDLE_NUM_SEGMENTS - 1;
+    assign paddle_segment = paddle_segment_cnt;
 
+    // Paddle segment position counter
     always @(posedge clk or negedge nRst)
     begin
         if(!nRst) begin
-            paddle_x <= 0;
+            paddle_segment_x <= 0;
         end else begin
-            if(in_paddle_x) begin
-                paddle_x <= paddle_x + 1'b1;
+            if(in_paddle_x && !paddle_segment_end) begin
+                paddle_segment_x <= paddle_segment_x + 1'b1;
             end else begin
-                paddle_x <= 0;
+                paddle_segment_x <= 0;
             end
         end
-    end    
+    end
 
+    // Paddle segment counter
+    always @(posedge clk or negedge nRst)
+    begin
+        if(!nRst) begin
+            paddle_segment_cnt <= 0;
+        end else begin
+            if(paddle_x_end) begin
+                paddle_segment_cnt <= 0;
+            end else if(paddle_segment_end) begin
+                paddle_segment_cnt <= paddle_segment_cnt + 1'b1;
+            end
+        end
+    end
+
+    // Are we in the paddle?
     always @(posedge clk or negedge nRst)
     begin
         if(!nRst) begin

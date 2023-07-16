@@ -20,7 +20,17 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
-module breakout(
+module breakout
+#(    
+    parameter PADDLE_SEGMENT_WIDTH = 8,
+    parameter PADDLE_NUM_SEGMENTS = 6, 
+    parameter NUM_ROWS = 16,
+    parameter BORDER_WIDTH = 8, // Must be a power of 2
+    parameter INITIAL_BALL_X = 10'd320 - 3'd2,
+    parameter INITIAL_BALL_Y = 9'd452 - 3'd2,
+    parameter INITIAL_VEL_X = 4'sd2,
+    parameter INITIAL_VEL_Y = -4'sd2
+)(
     input clk,
     input nRst,
     input en,
@@ -33,8 +43,6 @@ module breakout(
     output vga_hsync,
     output vga_vsync
     );
-
-    parameter NUM_ROWS = 16;
     
     // Generate the VGA timing
     wire vga_hactive;
@@ -86,7 +94,9 @@ module breakout(
     assign vga_b = video_out[5:4];
     
     // Border generator
-    border_painter border(
+    border_painter #(
+        .BORDER_WIDTH(BORDER_WIDTH)
+    ) border (
         .in_border(draw_border),
         .color(border_color),
         .hpos(vga_hpos),
@@ -118,15 +128,20 @@ module breakout(
     );
     
     // Paddle painter
-    wire [9:0]paddle_x;
-    paddle_painter paddle_painter(
+    wire [9:0] paddle_x;
+    wire [2:0] paddle_segment;
+    paddle_painter #(
+        .PADDLE_SEGMENT_WIDTH(PADDLE_SEGMENT_WIDTH),
+        .PADDLE_NUM_SEGMENTS(PADDLE_NUM_SEGMENTS)
+    ) paddle_painter(
         .clk(clk),
         .nRst(nRst),
         .in_paddle(draw_paddle),
         .color(paddle_color),
         .x(paddle_x),
         .hpos(vga_hpos),
-        .vpos(vga_vpos)
+        .vpos(vga_vpos),
+        .paddle_segment(paddle_segment)
     );
     
     // Collisions
@@ -172,7 +187,14 @@ module breakout(
     );
     
     // Game logic
-    game_logic game_logic(
+    game_logic #(
+        .PADDLE_WIDTH(PADDLE_SEGMENT_WIDTH * PADDLE_NUM_SEGMENTS),
+        .BORDER_WIDTH(BORDER_WIDTH),
+        .INITIAL_BALL_X(INITIAL_BALL_X),
+        .INITIAL_BALL_Y(INITIAL_BALL_Y),
+        .INITIAL_VEL_X(INITIAL_VEL_X),
+        .INITIAL_VEL_Y(INITIAL_VEL_Y)
+    ) game_logic(
         .clk(clk),
         .nRst(nRst),
         .ball_x(ball_x),
@@ -183,6 +205,8 @@ module breakout(
         .btn_left(btn_left),
         .btn_right(btn_right),
         .collision(collision),
+        .paddle_collision(paddle_collision),
+        .paddle_segment(paddle_segment),
         .ball_top_col(ball_top_en),
         .ball_left_col(ball_left_en),
         .ball_bottom_col(ball_bottom_en),
