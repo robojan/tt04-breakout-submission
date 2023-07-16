@@ -154,16 +154,19 @@ module blocks_painter (
     end
 
     // Remove blocks that have been hit
+    reg first_time_reset;
     always @(posedge clk or negedge nRst)
     begin
         if(!nRst) begin
             new_block_line_state <= 0;
+            first_time_reset <= 0;
         end else begin
-            if(load_line_state) begin
+            if(load_line_state || !first_time_reset) begin
                 new_block_line_state <= block_line_state;
             end else if(block_collision) begin
                 new_block_line_state <= new_block_line_state & ~(1 << block_offset_idx);
             end
+            first_time_reset <= 1'b1;
         end
     end
 
