@@ -13,6 +13,9 @@ project:
     - breakout.v
     - game_logic.v
     - paddle_painter.v
+    - spi_ctrl.v
+    - spi_if.v
+    - synchronizer.v
     - tt_um_robojan_top.v
     - vga_timing.v
     - video_mux.v
@@ -116,9 +119,9 @@ documentation:
     - Button action
     - none
     - none
-    - none
-    - none
-    - none
+    - MOSI
+    - SCK
+    - slave select
 # A description of what the outputs do (e.g. status LED, SPI MISO, etc)
   outputs:
     - Red output bit 0
@@ -131,9 +134,9 @@ documentation:
     - VSync
 # A description of what the bidirectional I/O pins do (e.g. I2C SDA, I2C SCL, etc)
   bidirectional:
-    - none
-    - none
-    - none
+    - HBlank
+    - VBlank
+    - MISO
     - none
     - none
     - none

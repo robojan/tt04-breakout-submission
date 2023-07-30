@@ -34,15 +34,37 @@ module breakout
     input clk,
     input nRst,
     input en,
-    input btn_left,
-    input btn_right,
-    input btn_select,
+    input btn_left_pin,
+    input btn_right_pin,
+    input btn_select_pin,
     output [1:0] vga_r,
     output [1:0] vga_g,
     output [1:0] vga_b,
     output vga_hsync,
-    output vga_vsync
+    output vga_vsync,
+    output vblank,
+    output hblank,
+    input sck_pin,
+    input ss_pin,
+    input mosi_pin,
+    output miso,
+    output miso_en
     );
+
+    // Synchronize the inputs
+    wire btn_left;
+    wire btn_right;
+    wire btn_select;
+    wire sck;
+    wire ss;
+    wire mosi;
+    synchronizer btn_left_sync(clk, nRst, btn_left_pin, btn_left);
+    synchronizer btn_right_sync(clk, nRst, btn_right_pin, btn_right);
+    synchronizer btn_select_sync(clk, nRst, btn_select_pin, btn_select);
+    synchronizer sck_sync(clk, nRst, sck_pin, sck);
+    synchronizer ss_sync(clk, nRst, ss_pin, ss);
+    synchronizer mosi_sync(clk, nRst, mosi_pin, mosi);
+
     
     // Generate the VGA timing
     wire vga_hactive;
@@ -65,6 +87,8 @@ module breakout
         .line_pulse(vga_line_pulse),
         .frame_pulse(vga_frame_pulse)
     );
+    assign vblank = !vga_vactive;
+    assign hblank = !vga_hactive;
     
     // Video mux
     wire [5:0] video_out;
@@ -175,18 +199,25 @@ module breakout
     );
     
     // State storage
+    wire [12:0] spi_new_line;
+    wire spi_line_write_en;
+    wire spi_line_shift;
     block_state  #(
         .NUM_ROWS(NUM_ROWS)
     ) block_state (
         .clk(clk),
         .nRst(nRst),
         .line(block_line_state),
-        .next_line(state_go_next_line),
-        .new_line(write_block_line),
-        .write_line(write_line)
+        .next_line(state_go_next_line || spi_line_shift),
+        .new_line(spi_line_write_en ? spi_new_line : write_block_line),
+        .write_line(spi_line_write_en || write_line)
     );
     
     // Game logic
+    wire [0:0] game_state;
+    wire ball_out_of_bounds;
+    wire latched_ball_block_collision;
+    wire cmd_stop_game;
     game_logic #(
         .PADDLE_WIDTH(PADDLE_SEGMENT_WIDTH * PADDLE_NUM_SEGMENTS),
         .BORDER_WIDTH(BORDER_WIDTH),
@@ -205,12 +236,63 @@ module breakout
         .btn_left(btn_left),
         .btn_right(btn_right),
         .collision(collision),
+        .block_collision(block_collision),
         .paddle_collision(paddle_collision),
         .paddle_segment(paddle_segment),
         .ball_top_col(ball_top_en),
         .ball_left_col(ball_left_en),
         .ball_bottom_col(ball_bottom_en),
-        .ball_right_col(ball_right_en)
+        .ball_right_col(ball_right_en),
+        .game_state(game_state),
+        .ball_out_of_bounds(ball_out_of_bounds),
+        .latched_ball_block_collision(latched_ball_block_collision),
+        .cmd_stop_game(cmd_stop_game)
+    );
+
+    // External interface
+    localparam SPI_STATE_SIZE = 10+9+10+3+1+2+3+13;
+    wire [SPI_STATE_SIZE - 1:0] spi_state = {
+        ball_x,
+        ball_y,
+        paddle_x,
+        3'd0, // TOOD: remaining lives
+        game_state,
+        ball_out_of_bounds,
+        latched_ball_block_collision,
+        btn_select,
+        btn_left,
+        btn_right,
+        block_line_state
+    };
+    wire spi_start_transaction;
+    wire [15:0] spi_value;
+    wire spi_write_en;
+    spi_if #(
+        .STATE_SIZE(SPI_STATE_SIZE)
+    ) spi_if (
+        .clk(clk),
+        .nRst(nRst),
+        .sck(sck),
+        .ss(ss),
+        .mosi(mosi),
+        .state(spi_state),
+        .write_value(spi_value),
+        .write_en(spi_write_en),
+        .miso(miso),
+        .miso_en(miso_en),
+        .start_transaction(spi_start_transaction)
+    );
+
+    spi_ctrl spi_ctrl(
+        .clk(clk),
+        .nRst(nRst),
+        .start(spi_start_transaction),
+        .word_en(spi_write_en),
+        .word(spi_value),
+        .line(spi_new_line),
+        .write_line(spi_line_write_en),
+        .shift_line(spi_line_shift),
+        .stop_game(cmd_stop_game)
     );
     
 endmodule

@@ -31,21 +31,32 @@ module tt_um_robojan_top (
     input  wire       rst_n     // reset_n - low to reset
 );
     
-    assign uio_oe = 8'b00000000;
-    assign uio_out = 8'b00000000;
-
+    wire vblank;
+    wire hblank;
+    wire miso_en;
+    wire miso;
     breakout breakout(
         .clk(clk),
         .nRst(rst_n),
         .en(ena),
-        .btn_left(ui_in[0]),
-        .btn_right(ui_in[1]),
-        .btn_select(ui_in[2]),
+        .btn_left_pin(ui_in[0]),
+        .btn_right_pin(ui_in[1]),
+        .btn_select_pin(ui_in[2]),
         .vga_r(uo_out[1:0]),
         .vga_g(uo_out[3:2]),
         .vga_b(uo_out[5:4]),
         .vga_hsync(uo_out[6]),
-        .vga_vsync(uo_out[7])
+        .vga_vsync(uo_out[7]),
+        .vblank(vblank),
+        .hblank(hblank),
+        .sck_pin(ui_in[6]),
+        .ss_pin(ui_in[7]),
+        .mosi_pin(ui_in[5]),
+        .miso_en(miso_en),
+        .miso(miso)
     );
+
+    assign uio_oe = {5'b0, miso_en, 1'b1, 1'b1};
+    assign uio_out = {5'b0, miso, vblank, hblank};
     
 endmodule

@@ -41,15 +41,19 @@ module game_logic
     input btn_left,
     input btn_right,
     input collision,
+    input block_collision,
     input paddle_collision,
     input [2:0] paddle_segment,
     input ball_top_col,
     input ball_left_col,
     input ball_bottom_col,
-    input ball_right_col
+    input ball_right_col,
+    output reg [0:0] game_state,
+    output wire ball_out_of_bounds,
+    output reg latched_ball_block_collision,
+    input cmd_stop_game
 );
 
-    wire ball_out_of_bounds;
     wire paddle_is_at_left_limit;
     wire paddle_is_at_right_limit;
 
@@ -58,7 +62,6 @@ module game_logic
     /////////////////////////////////////////////
     localparam STATE_START = 0;
     localparam STATE_PLAYING = 1;
-    reg game_state;
     always @(posedge clk or negedge nRst)
     begin
         if(!nRst) begin
@@ -72,7 +75,7 @@ module game_logic
                         end
                     end
                     STATE_PLAYING: begin
-                        if(ball_out_of_bounds) begin
+                        if(ball_out_of_bounds || cmd_stop_game) begin
                             game_state <= STATE_START;
                         end
                     end
@@ -102,20 +105,23 @@ module game_logic
             latched_ball_right_collision <= 1'b0;
             latched_paddle_collision <= 1'b0;
             latched_paddle_segment <= 3'b0;
+            latched_ball_block_collision <= 1'b0;
         end else begin
             if (frame_pulse) begin
                 latched_ball_top_collision <= 1'b0;
                 latched_ball_bottom_collision <= 1'b0;
                 latched_ball_left_collision <= 1'b0;
-                latched_ball_right_collision <= 1'b0;    
+                latched_ball_right_collision <= 1'b0;
                 latched_paddle_collision <= 1'b0;
                 latched_paddle_segment <= 3'b0;
+                latched_ball_block_collision <= 1'b0;
             end else if(collision) begin
                 latched_ball_top_collision <= latched_ball_top_collision | ball_top_col;
                 latched_ball_bottom_collision <= latched_ball_bottom_collision | ball_bottom_col;
                 latched_ball_left_collision <= latched_ball_left_collision | ball_left_col;
                 latched_ball_right_collision <= latched_ball_right_collision | ball_right_col;
                 latched_paddle_collision <= latched_paddle_collision | paddle_collision;
+                latched_ball_block_collision <= latched_ball_block_collision | block_collision;
             end
             if(paddle_collision) begin
                 latched_paddle_segment <= paddle_segment;
