@@ -250,11 +250,8 @@ module breakout
     );
 
     // External interface
-    localparam SPI_STATE_SIZE = 10+9+10+3+1+2+3+13;
+    localparam SPI_STATE_SIZE = 3+1+2+3+13;
     wire [SPI_STATE_SIZE - 1:0] spi_state = {
-        ball_x,
-        ball_y,
-        paddle_x,
         3'd0, // TOOD: remaining lives
         game_state,
         ball_out_of_bounds,
