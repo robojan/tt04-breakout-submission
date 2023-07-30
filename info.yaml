@@ -82,9 +82,9 @@ documentation:
 
     The VGA DAC should be connected as follows:
     ```
-                ___       ___
+               ___       ___
     Bit 0 ----|___|--+--|___|-- GND
-                390   |   390
+               390   |   390
                     .-.
                     | |
                 200 | |
