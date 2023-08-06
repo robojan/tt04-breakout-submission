@@ -107,6 +107,29 @@ documentation:
     - HSync to VGA connector pin 13
     - VSync to VGA connector pin 14
     - GND to VGA connector pin 5, 6, 7, 8
+
+    ## SPI interface
+    For changing the game state externally you can use the SPI interface. 
+    The SPI interface returns the current game state when reading and accepts a few commands when writing.
+    The SPI interface uses 16 bit words.
+
+    The returned state is as follows:
+    - bit 0-12: The block state of the current row. Use HBlank and VBlank to determine which row is currently being drawn.
+    - bit 13: right button state
+    - bit 14: left button state
+    - bit 15: action button state
+    - bit 16: collision state. This bit is set when a collision has been detected.
+    - bit 17: ball out of bounds. This bit is set when the ball is off screen.
+    - bit 18: game state: 0 = game idle, 1 = game running
+    - bit 19-21: remaining lives (Currently not implemented)
+
+    When writing the first word is the command word, the following words are the data words for the command.
+    Command words:
+    - 0x0000: Do nothing. Usefull when you want to read the state.
+    - 0x0001: Write a row state. This will shift the state to the next row. Be sure to only use this during the VBlank and call 
+              this with 16 words to completely draw the screen.
+    - 0x0002: Send control word. The next word is the control word. The control word is as follows:
+        - bit[0]: Send the stop game command.
   
     ## Board configuration
     The ASIC requires an input clock of 25.175MHz. The 7-Segment display is not used.
@@ -149,4 +172,4 @@ documentation:
   discord:      "Robojan"      # Your discord handle, used for communication and automatically assigning tapeout role after a submission
   doc_link:     "https://github.com/robojan/tt04-breakout-submission/blob/main/README.md"      # URL to longer form documentation, eg the README.md in your repository
   clock_hz:     25175000       # Clock frequency in Hz (if required)
-  picture:      ""      # relative path to a picture in your repository (must be 512kb or less)
+  picture:      "images/screenshot.jpg"      # relative path to a picture in your repository (must be 512kb or less)

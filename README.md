@@ -1,36 +1,114 @@
 ![](../../workflows/gds/badge.svg) ![](../../workflows/docs/badge.svg) ![](../../workflows/wokwi_test/badge.svg)
 
-# What is Tiny Tapeout?
+![screenshot](images/screenshot.jpg)
+
+# Tiny breakout 
+Tiny breakout is a simple breakout game for the [Tiny Tapeout](https://tinytapeout.com) project. 
+
+This submission is a simple breakout game implemented in verilog. You can control the game with 3 buttons, left, right and action.
+A VGA video signal is generated, with the help of a simple DAC you can connect the Tiny Tapeout board to a VGA monitor.
+
+## What is Tiny Tapeout?
 
 TinyTapeout is an educational project that aims to make it easier and cheaper than ever to get your digital designs manufactured on a real chip!
 
 Go to https://tinytapeout.com for instructions!
 
-## How to change the Wokwi project
-
-Edit the [info.yaml](info.yaml) and change the wokwi_id to match your project.
-
-## How to enable the GitHub actions to build the ASIC files
-
-Please see the instructions for:
-
-- [Enabling GitHub Actions](https://tinytapeout.com/faq/#when-i-commit-my-change-the-gds-action-isnt-running)
-- [Enabling GitHub Pages](https://tinytapeout.com/faq/#my-github-action-is-failing-on-the-pages-part)
-
-## How does it work?
-
-When you edit the info.yaml to choose a different ID, the [GitHub Action](.github/workflows/gds.yaml) will fetch the digital netlist of your design from Wokwi.
-
-After that, the action uses the open source ASIC tool called [OpenLane](https://www.zerotoasiccourse.com/terminology/openlane/) to build the files needed to fabricate an ASIC.
-
-## Resources
+### Resources
 
 - [FAQ](https://tinytapeout.com/faq/)
 - [Digital design lessons](https://tinytapeout.com/digital_design/)
 - [Learn how semiconductors work](https://tinytapeout.com/siliwiz/)
 - [Join the community](https://discord.gg/rPK2nSjxy8)
 
-## What next?
+## Basic operation
+The core of the design is the vga_timing module. This module generates all the required timing signals. Some of these signals like hsync and vsync
+are used to generate the video signal, while others like the horizontal and vertical position are used to generate the graphics. The horizontal and
+vertical sync signals are also used for the game logic.
 
-- Submit your design to the next shuttle [on the website](https://tinytapeout.com/#submit-your-design), the closing date is 8th September.
-- Share your GDS on Twitter, tag it [#tinytapeout](https://twitter.com/hashtag/tinytapeout?src=hashtag_click) and [link me](https://twitter.com/matthewvenn)!
+Before outputting the video signal the video mux selects the correct input color to display. It does so based on the highest priority component that 
+wants to output a color.
+
+We have multiple painter modules. These generate from the current game state and the current horizontal and vertical position the correct color to 
+display. Ideally the painters would not contribute to the game logic, but for optimization reasons they do. 
+
+While drawing a frame the game logic keeps track of collisions. It does so by checking if multiple painters want to draw at the same position. If so
+it will latch a collision, which will be processed after drawing the frame.
+
+At the end of each frame the game logic will calculate the next ball position, taking collisions into account. The collision with the paddle is special.
+To have an entertaining game that does not play the same every time the ball will bounce off the paddle at a different angle depending on where it hits. 
+This is done by splitting the paddle into multiple segments and checking for collisions with these segments. The game logic will look at the segment 
+when a paddle collision was registered. An exception to the end of frame gamestate update is the breaking of blocks. It would require too much memory to
+keep the updated state for the next frame. Instead we will update the row of blocks that was just finished drawing.
+
+We can display a grid of 13x16 blocks. This requires 208 bits of memory. This is a lot of memory for such a small design and takes up a lot of space. 
+To reduce the number of connections the state has been put into a shift register that outputs one row at a time. This shift register is rotated 13 bits 
+when we reach the end of drawing a row of blocks. Also we can write to the shift register the new block state if a block has been broken. This is done 
+one clock cycle before shifting to the next row. 1 clock cycle after shifting to the next row we load the current row into a buffer which will be used
+to update the state.
+
+## How to test
+This is a small breakout game implemented in HDL. It uses a VGA connector to output the video signal. 
+The game is controlled by 3 buttons. 
+The left button moves the paddle to the left, the right button moves the paddle to the right and the action button starts the game. 
+The game is over when all blocks are destroyed or when the ball hits the bottom of the screen.
+
+## Required hardware
+This project requires a VGA monitor and a VGA DAC. An easy way to create the VGA DAC is to use 3 2-bit R2R DACs.
+The 2-bit R2R DACs can be created using 2 resistors per bit. The resistors should be 200Ohm and 390Ohm. For the 3.3V power supply.
+
+**What has not been verified is the current sourcing capability of the ASIC, If it can not at least source 10mA through each pin and
+30mA through the power supply pins you should add a buffer before the DAC.**
+
+The VGA DAC should be connected as follows:
+```
+          ____       ____
+Bit 0 ---|____|--+--|____|-- GND
+          390    |   390
+                .-.
+                | |
+            200 | |
+                '-'
+          ____   |  
+Bit 1 ---|____|--+---- Out
+          390
+```
+
+Every color should have an identical copy of this DAC. The red DAC should be connected to the red VGA pin, 
+the green DAC to the green VGA pin and the blue DAC to the blue VGA pin. The outputs of the DACs should be connected to the VGA 
+connector. The HSync and VSync pins should also be connected to the VGA connector. 
+The following connections need to be made to the VGA connector:
+- Red DAC output to VGA connector pin 1 
+- Green DAC output to VGA connector pin 2
+- Blue DAC output to VGA connector pin 3
+- HSync to VGA connector pin 13
+- VSync to VGA connector pin 14
+- GND to VGA connector pin 5, 6, 7, 8
+
+## SPI interface
+For changing the game state externally you can use the SPI interface. 
+The SPI interface returns the current game state when reading and accepts a few commands when writing.
+The SPI interface uses 16 bit words.
+
+The returned state is as follows:
+- bit 0-12: The block state of the current row. Use HBlank and VBlank to determine which row is currently being drawn.
+- bit 13: right button state
+- bit 14: left button state
+- bit 15: action button state
+- bit 16: collision state. This bit is set when a collision has been detected.
+- bit 17: ball out of bounds. This bit is set when the ball is off screen.
+- bit 18: game state: 0 = game idle, 1 = game running
+- bit 19-21: remaining lives (Currently not implemented)
+
+When writing the first word is the command word, the following words are the data words for the command.
+Command words:
+- 0x0000: Do nothing. Usefull when you want to read the state.
+- 0x0001: Write a row state. This will shift the state to the next row. Be sure to only use this during the VBlank and call 
+            this with 16 words to completely draw the screen.
+- 0x0002: Send control word. The next word is the control word. The control word is as follows:
+    - bit[0]: Send the stop game command.
+
+## Board configuration
+The ASIC requires an input clock of 25.175MHz. The 7-Segment display is not used.
+
+
