@@ -40,9 +40,9 @@ module tt_um_robojan_top (
         .clk(clk),
         .nRst(rst_n),
         .en(ena),
-        .btn_left_pin(ui_in[0]),
-        .btn_right_pin(ui_in[1]),
-        .btn_select_pin(ui_in[2]),
+        .btn_left_pin(ui_in[5]),
+        .btn_right_pin(ui_in[6]),
+        .btn_select_pin(ui_in[7]),
         .vga_r(uo_out[3:2]),
         .vga_g(uo_out[5:4]),
         .vga_b(uo_out[7:6]),
@@ -50,15 +50,15 @@ module tt_um_robojan_top (
         .vga_vsync(uo_out[1]),
         .vblank(vblank),
         .hblank(hblank),
-        .sck_pin(ui_in[6]),
-        .ss_pin(ui_in[7]),
-        .mosi_pin(ui_in[5]),
+        .sck_pin(ui_in[1]),
+        .ss_pin(ui_in[2]),
+        .mosi_pin(ui_in[0]),
         .miso_en(miso_en),
         .miso(miso),
         .sound_out(sound)
     );
 
-    assign uio_oe = {4'b0, 1'b1, miso_en, 1'b1, 1'b1};
-    assign uio_out = {4'b0, sound, miso, vblank, hblank};
+    assign uio_oe = {4'b0, 1'b1, 1'b1, 1'b1, miso_en};
+    assign uio_out = {4'b0, sound, vblank, hblank, miso};
     
 endmodule

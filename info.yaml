@@ -138,15 +138,15 @@ documentation:
     
 
 # A description of what the inputs do (e.g. red button, SPI CLK, SPI MOSI, etc).
-  inputs:               
+  inputs:
+    - MOSI
+    - SCK
+    - slave select   
+    - none
+    - none            
     - Button left
     - Button right
     - Button action
-    - none
-    - none
-    - MOSI
-    - SCK
-    - slave select
 # A description of what the outputs do (e.g. status LED, SPI MISO, etc)
   outputs:
     - HSync
@@ -159,9 +159,9 @@ documentation:
     - Blue output bit 1
 # A description of what the bidirectional I/O pins do (e.g. I2C SDA, I2C SCL, etc)
   bidirectional:
+    - MISO
     - HBlank
     - VBlank
-    - MISO
     - sound output. Connect to a speaker with amplifier.
     - none
     - none
