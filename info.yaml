@@ -149,14 +149,14 @@ documentation:
     - slave select
 # A description of what the outputs do (e.g. status LED, SPI MISO, etc)
   outputs:
+    - HSync
+    - VSync
     - Red output bit 0
     - Red output bit 1
     - Green output bit 0
     - Green output bit 1
     - Blue output bit 0
     - Blue output bit 1
-    - HSync
-    - VSync
 # A description of what the bidirectional I/O pins do (e.g. I2C SDA, I2C SCL, etc)
   bidirectional:
     - HBlank
