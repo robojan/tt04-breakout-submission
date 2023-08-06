@@ -35,6 +35,7 @@ module tt_um_robojan_top (
     wire hblank;
     wire miso_en;
     wire miso;
+    wire sound;
     breakout breakout(
         .clk(clk),
         .nRst(rst_n),
@@ -53,10 +54,11 @@ module tt_um_robojan_top (
         .ss_pin(ui_in[7]),
         .mosi_pin(ui_in[5]),
         .miso_en(miso_en),
-        .miso(miso)
+        .miso(miso),
+        .sound_out(sound)
     );
 
-    assign uio_oe = {5'b0, miso_en, 1'b1, 1'b1};
-    assign uio_out = {5'b0, miso, vblank, hblank};
+    assign uio_oe = {4'b0, 1'b1, miso_en, 1'b1, 1'b1};
+    assign uio_out = {4'b0, sound, miso, vblank, hblank};
     
 endmodule

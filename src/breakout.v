@@ -48,7 +48,8 @@ module breakout
     input ss_pin,
     input mosi_pin,
     output miso,
-    output miso_en
+    output miso_en,
+    output sound_out
     );
 
     // Synchronize the inputs
@@ -230,6 +231,17 @@ module breakout
         .new_line(spi_line_write_en ? spi_new_line : write_block_line),
         .write_line(spi_line_write_en || write_line),
         .reset_state(reset_state)
+    );
+
+    // Sound generator
+    sound_gen sound_gen(
+        .clk(clk),
+        .nRst(nRst),
+        .sound(sound_out),
+        .line_pulse(vga_line_pulse),
+        .frame_pulse(vga_frame_pulse),
+        .high_beep(collision),
+        .low_beep(block_collision || ball_out_of_bounds)
     );
     
     // Game logic
