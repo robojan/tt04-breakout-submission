@@ -219,6 +219,7 @@ module breakout
     wire [12:0] spi_new_line;
     wire spi_line_write_en;
     wire spi_line_shift;
+    wire reset_state;
     block_state  #(
         .NUM_ROWS(NUM_ROWS)
     ) block_state (
@@ -227,7 +228,8 @@ module breakout
         .line(block_line_state),
         .next_line(state_go_next_line || spi_line_shift),
         .new_line(spi_line_write_en ? spi_new_line : write_block_line),
-        .write_line(spi_line_write_en || write_line)
+        .write_line(spi_line_write_en || write_line),
+        .reset_state(reset_state)
     );
     
     // Game logic
@@ -264,7 +266,8 @@ module breakout
         .ball_out_of_bounds(ball_out_of_bounds),
         .latched_ball_block_collision(latched_ball_block_collision),
         .cmd_stop_game(cmd_stop_game),
-        .lives(lives)
+        .lives(lives),
+        .reset_state(reset_state)
     );
 
     // External interface

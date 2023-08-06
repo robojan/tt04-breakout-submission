@@ -28,7 +28,8 @@ module block_state #(
     output [12:0] line,
     input [12:0] new_line,
     input write_line,
-    input next_line
+    input next_line,
+    input reset_state
 );
 
     localparam STATE_WIDTH = NUM_ROWS * 13;
@@ -57,7 +58,9 @@ module block_state #(
         if (!nRst) begin
             state <= INITIAL_STATE;
         end else begin
-            if (write_line) begin
+            if (reset_state) begin
+                state <= INITIAL_STATE;
+            end if (write_line) begin
                 state <= {state[STATE_WIDTH - 1:13], new_line};
             end else if (next_line) begin
                 state <= {state[12:0], state[STATE_WIDTH - 1:13]};

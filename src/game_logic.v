@@ -52,13 +52,15 @@ module game_logic
     output wire ball_out_of_bounds,
     output reg latched_ball_block_collision,
     input cmd_stop_game,
-    output reg [1:0] lives
+    output reg [1:0] lives,
+    output reset_state
 );
 
     wire paddle_is_at_left_limit;
     wire paddle_is_at_right_limit;
     wire out_of_lives = lives == 2'd0;
     wire end_of_game = out_of_lives && ball_out_of_bounds;
+    assign reset_state = end_of_game;
 
     /////////////////////////////////////////////
     // Game state
