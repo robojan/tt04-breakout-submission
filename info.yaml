@@ -12,6 +12,7 @@ project:
     - border_painter.v
     - breakout.v
     - game_logic.v
+    - lives_painter.v
     - paddle_painter.v
     - spi_ctrl.v
     - spi_if.v
@@ -121,13 +122,13 @@ documentation:
     - bit 16: collision state. This bit is set when a collision has been detected.
     - bit 17: ball out of bounds. This bit is set when the ball is off screen.
     - bit 18: game state: 0 = game idle, 1 = game running
-    - bit 19-21: remaining lives (Currently not implemented)
+    - bit 19-20: remaining lives
 
     When writing the first word is the command word, the following words are the data words for the command.
     Command words:
     - 0x0000: Do nothing. Usefull when you want to read the state.
     - 0x0001: Write a row state. This will shift the state to the next row. Be sure to only use this during the VBlank and call 
-              this with 16 words to completely draw the screen.
+              this with 15 words to completely draw the screen.
     - 0x0002: Send control word. The next word is the control word. The control word is as follows:
         - bit[0]: Send the stop game command.
   

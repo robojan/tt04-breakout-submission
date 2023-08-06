@@ -104,7 +104,7 @@ When writing the first word is the command word, the following words are the dat
 Command words:
 - 0x0000: Do nothing. Usefull when you want to read the state.
 - 0x0001: Write a row state. This will shift the state to the next row. Be sure to only use this during the VBlank and call 
-            this with 16 words to completely draw the screen.
+            this with 15 words to completely draw the screen.
 - 0x0002: Send control word. The next word is the control word. The control word is as follows:
     - bit[0]: Send the stop game command.
 

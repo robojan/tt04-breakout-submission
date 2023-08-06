@@ -21,7 +21,7 @@
 
 
 module block_state #(
-    parameter NUM_ROWS = 16
+    parameter NUM_ROWS = 15
 )(
     input clk,
     input nRst,
@@ -34,7 +34,6 @@ module block_state #(
     localparam STATE_WIDTH = NUM_ROWS * 13;
 
     localparam INITIAL_STATE = {
-        13'b1111111111111,
         13'b1111111111111,
         13'b0111111111111,
         13'b0011111111111,

@@ -51,11 +51,14 @@ module game_logic
     output reg [0:0] game_state,
     output wire ball_out_of_bounds,
     output reg latched_ball_block_collision,
-    input cmd_stop_game
+    input cmd_stop_game,
+    output reg [1:0] lives
 );
 
     wire paddle_is_at_left_limit;
     wire paddle_is_at_right_limit;
+    wire out_of_lives = lives == 2'd0;
+    wire end_of_game = out_of_lives && ball_out_of_bounds;
 
     /////////////////////////////////////////////
     // Game state
@@ -66,6 +69,7 @@ module game_logic
     begin
         if(!nRst) begin
             game_state <= STATE_START;
+            lives <= 2'd3;
         end else begin
             if(frame_pulse) begin
                 case(game_state)
@@ -75,14 +79,20 @@ module game_logic
                         end
                     end
                     STATE_PLAYING: begin
-                        if(ball_out_of_bounds || cmd_stop_game) begin
+                        if(ball_out_of_bounds) begin
                             game_state <= STATE_START;
+                            lives <= out_of_lives ? 2'd3 : lives - 1'b1;
+                        end else if (cmd_stop_game) begin
+                            game_state <= STATE_START;
+                            lives <= 2'd3;
                         end
                     end
                 endcase
             end
         end
     end
+
+
 
 
     /////////////////////////////////////////////

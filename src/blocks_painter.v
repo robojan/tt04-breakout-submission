@@ -41,7 +41,7 @@ module blocks_painter (
     parameter BLOCK_WIDTH = 48;
     parameter BLOCK_HEIGHT = 20;
     parameter BLOCKS_PER_ROW = 13;
-    parameter NUM_ROWS = 16;
+    parameter NUM_ROWS = 15;
     
     reg in_vertical_block_region;
     wire vertical_block_region_start = vpos == BORDER_WIDTH && display_active;

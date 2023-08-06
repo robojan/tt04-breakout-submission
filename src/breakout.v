@@ -24,7 +24,7 @@ module breakout
 #(    
     parameter PADDLE_SEGMENT_WIDTH = 8,
     parameter PADDLE_NUM_SEGMENTS = 6, 
-    parameter NUM_ROWS = 16,
+    parameter NUM_ROWS = 15,
     parameter BORDER_WIDTH = 8, // Must be a power of 2
     parameter INITIAL_BALL_X = 10'd320 - 3'd2,
     parameter INITIAL_BALL_Y = 9'd452 - 3'd2,
@@ -100,6 +100,8 @@ module breakout
     wire draw_paddle;
     wire [5:0] blocks_color;
     wire draw_blocks;
+    wire [5:0] lives_color;
+    wire draw_lives;
     video_mux video_mux(
         .out(video_out),
         .in_frame(vga_active),
@@ -111,7 +113,9 @@ module breakout
         .paddle(paddle_color),
         .paddle_en(draw_paddle),
         .blocks(blocks_color),
-        .blocks_en(draw_blocks)
+        .blocks_en(draw_blocks),
+        .lives(lives_color),
+        .lives_en(draw_lives)
     );
     assign vga_r = video_out[1:0];
     assign vga_g = video_out[3:2];
@@ -197,6 +201,19 @@ module breakout
         .new_block_line_state(write_block_line),
         .write_block_line_state(write_line)
     );
+
+    // Lives painter
+    wire [1:0] lives;
+    lives_painter lives_painter(
+        .clk(clk),
+        .nRst(nRst),
+        .in_lives(draw_lives),
+        .color(lives_color),
+        .hactive(vga_hactive),
+        .hpos(vga_hpos),
+        .vpos(vga_vpos),
+        .lives(lives)
+    );
     
     // State storage
     wire [12:0] spi_new_line;
@@ -246,13 +263,14 @@ module breakout
         .game_state(game_state),
         .ball_out_of_bounds(ball_out_of_bounds),
         .latched_ball_block_collision(latched_ball_block_collision),
-        .cmd_stop_game(cmd_stop_game)
+        .cmd_stop_game(cmd_stop_game),
+        .lives(lives)
     );
 
     // External interface
-    localparam SPI_STATE_SIZE = 3+1+2+3+13;
+    localparam SPI_STATE_SIZE = 2+1+2+3+13;
     wire [SPI_STATE_SIZE - 1:0] spi_state = {
-        3'd0, // TOOD: remaining lives
+        lives,
         game_state,
         ball_out_of_bounds,
         latched_ball_block_collision,

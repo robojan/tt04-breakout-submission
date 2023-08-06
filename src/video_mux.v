@@ -31,7 +31,9 @@ module video_mux(
     input [5:0] paddle,
     input paddle_en,
     input [5:0] blocks,
-    input blocks_en
+    input blocks_en,
+    input [5:0] lives,
+    input lives_en
     );
     
     always @(*)
@@ -46,6 +48,8 @@ module video_mux(
             out <= blocks;
         end else if (ball_en) begin
             out <= ball;
+        end else if (lives_en) begin
+            out <= lives;
         end else begin
             out <= background;
         end
