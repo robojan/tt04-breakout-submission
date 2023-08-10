@@ -68,7 +68,7 @@ module vga_timing(
     end
 
     wire hsync_start = hor_counter == 10'd656;
-    wire hsync_end = hor_counter == 10'd751;
+    wire hsync_end = hor_counter == 10'd752;
     always @(posedge clk or negedge nRst)
     begin
         if(!nRst) begin
@@ -119,7 +119,7 @@ module vga_timing(
         end else begin
             if(vert_at_end && hor_at_end) begin
                 vactive <= 1'b1;
-            end else if(vactive_end) begin
+            end else if(vactive_end && hor_at_end) begin
                 vactive <= 1'b0;
             end
         end
