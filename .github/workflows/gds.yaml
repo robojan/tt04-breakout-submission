@@ -24,6 +24,10 @@ jobs:
         uses: actions/checkout@v3
         with:
           submodules: recursive
+      
+      - name: install dependencies
+        run: |
+          pip install pytest
 
       - name: GL test
         uses: TinyTapeout/tt-gds-action/gl_test@tt04
