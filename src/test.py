@@ -177,18 +177,26 @@ async def test_move_paddle_left(dut):
 
     await wait_for_line(dut, 458)
     t1 = cocotb.utils.get_sim_time(units="ns")
+    dut._log.info(f"take start of line time: {t1}")
     await ClockCycles(dut.clk, 16) # Skip the border
     await RisingEdge(dut.vga_r0) # Wait until the paddle
     t2 = cocotb.utils.get_sim_time(units="ns")
+    dut._log.info(f"take start of paddle time: {t2}")
     pos_paddle1 = t2 - t1
+    dut._log.info(f"paddle time: {pos_paddle1}")
 
     dut.btn_left.value = 1
+
     await wait_for_line(dut, 458)
     t1 = cocotb.utils.get_sim_time(units="ns")
+    dut._log.info(f"take start of line time: {t1}")
     await ClockCycles(dut.clk, 16) # Skip the border
     await RisingEdge(dut.vga_r0) # Wait until the paddle
     t2 = cocotb.utils.get_sim_time(units="ns")
+    dut._log.info(f"take start of paddle time: {t2}")
     pos_paddle2 = t2 - t1
+    dut._log.info(f"paddle time: {pos_paddle2}")
+
     
     assert pos_paddle2 < pos_paddle1
 
@@ -198,18 +206,25 @@ async def test_move_paddle_right(dut):
 
     await wait_for_line(dut, 458)
     t1 = cocotb.utils.get_sim_time(units="ns")
+    dut._log.info(f"take start of line time: {t1}")
     await ClockCycles(dut.clk, 16)
     await RisingEdge(dut.vga_r0)
     t2 = cocotb.utils.get_sim_time(units="ns")
+    dut._log.info(f"take start of paddle time: {t2}")
     pos_paddle1 = t2 - t1
+    dut._log.info(f"paddle time: {pos_paddle1}")
 
     dut.btn_right.value = 1
+
     await wait_for_line(dut, 458)
     t1 = cocotb.utils.get_sim_time(units="ns")
+    dut._log.info(f"take start of line time: {t1}")
     await ClockCycles(dut.clk, 16)
     await RisingEdge(dut.vga_r0)
     t2 = cocotb.utils.get_sim_time(units="ns")
+    dut._log.info(f"take start of paddle time: {t2}")
     pos_paddle2 = t2 - t1
+    dut._log.info(f"paddle time: {pos_paddle2}")
 
     assert pos_paddle2 > pos_paddle1
 
@@ -219,16 +234,24 @@ async def test_dont_move_paddle(dut):
 
     await wait_for_line(dut, 458)
     t1 = cocotb.utils.get_sim_time(units="ns")
+    dut._log.info(f"take start of line time: {t1}")
     await ClockCycles(dut.clk, 16)
     await RisingEdge(dut.vga_r0)
     t2 = cocotb.utils.get_sim_time(units="ns")
+    dut._log.info(f"take start of paddle time: {t2}")
     pos_paddle1 = t2 - t1
+    dut._log.info(f"paddle time: {pos_paddle1}")
+
+    await RisingEdge(dut.vsync)
 
     await wait_for_line(dut, 458)
     t1 = cocotb.utils.get_sim_time(units="ns")
+    dut._log.info(f"take start of line time: {t1}")
     await ClockCycles(dut.clk, 16)
     await RisingEdge(dut.vga_r0)
     t2 = cocotb.utils.get_sim_time(units="ns")
+    dut._log.info(f"take start of paddle time: {t2}")
     pos_paddle2 = t2 - t1
+    dut._log.info(f"paddle time: {pos_paddle2}")
 
     assert pos_paddle2 == pytest.approx(pos_paddle1)
